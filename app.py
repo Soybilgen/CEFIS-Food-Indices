@@ -30,14 +30,14 @@ st.sidebar.markdown("<a href='https://bilgibankasi.ito.org.tr/tr/istatistik-veri
 # Main
 st.title('CEFIS Daily Food Price Indices')
 
-st.markdown("The CEFIS Food Price Indices are a result of an extensive data collection process, where we gather daily food price data from five major online retail chains in Turkey. This process, which has been ongoing since July 2018, allows us to extract a vast amount of price data each day. \
+st.markdown("The <a href='https://cefis.bilgi.edu.tr/'>CEFIS</a> Food Price Indices are a result of an extensive data collection process, where we gather daily food price data from five major online retail chains in Turkey. This process, which has been ongoing since July 2018, allows us to extract a vast amount of price data each day. \
             We follow the procedure established by the Turkish Statistical Institute (TurkStat), classifying the prices into one of the 131 food and non-alcoholic beverages subcategory provided by TurkStat. \
             For each subcategory, we take the geometric average of all prices in that subcategory each day. After obtaining geometric prices, we index all subcategories using the base period January 2020 = 100. \
-            In cases where we were unable to collect data, we use linear interpolation to estimate the values of missing observations. After forming 132 daily food subindexes, we multiply the subindex weights used by TurkStat by our daily subindex values to obtain our daily main food index.\
+            In cases where we were unable to collect data, we use linear interpolation to estimate the values of missing observations. After forming 131 daily food subindexes, we multiply the subindex weights used by TurkStat by our daily subindex values to obtain our daily main food index.\
             For more information on our methodology, please see our <a href='https://link.springer.com/article/10.1007/s41549-023-00084-2'>methodology paper</a>.", unsafe_allow_html=True)
 
 st.markdown("In this dashboard, we display the subindices that are used to create our main food index in the upper figure. You can choose any subindex or its associated price level using the left menu. \
-             We also display the main food index and the competing index in the lower figure. You can choose the competing index using the left menu.")
+             We also display the main food index and the competing index in the lower figure. You can also choose the competing index using the left menu.")
 
 # Main
 st.header(f'Daily Time Series of {selected_item1}')
@@ -67,7 +67,7 @@ else:
     st.plotly_chart(fig1, theme="streamlit", use_container_width=True,)
 
 # Main
-st.header(f'Daily Time Series of {main_index.columns[0]} and {selected_item2}')
+st.header(f'Daily Time Series of {main_index.columns[1]} and {selected_item2}')
 
 # Time series plot
 fig2_data = main_index[["date", main_index.columns[1], selected_item2]]
