@@ -15,6 +15,20 @@ subindices['date'] = pd.to_datetime(subindices['date'])
 subprices['date'] = pd.to_datetime(subprices['date'])
 main_index['date'] = pd.to_datetime(main_index['date'])
 
+last_day = main_index["date"][main_index.__len__()-1]
+
+date_range_previous_month = pd.date_range(start=(last_day - pd.DateOffset(months=1) - pd.DateOffset(days=last_day.day-1)), end=(last_day - pd.DateOffset(months=1)), freq='D')
+date_range_previous_year = pd.date_range(start=(last_day - pd.DateOffset(years=1) - pd.DateOffset(days=last_day.day-1)), end=(last_day - pd.DateOffset(years=1)), freq='D')
+date_range_current_month = pd.date_range(start=(last_day - pd.DateOffset(days=last_day.day-1)), end=(last_day), freq='D')
+
+price_index_previous_month = main_index.loc[main_index['date'].isin(date_range_previous_month), "CEFIS Food Index"].mean()
+price_index_current_month = main_index.loc[main_index['date'].isin(date_range_current_month), "CEFIS Food Index"].mean()
+mom_growth = round((price_index_current_month/price_index_previous_month-1)*100,2)
+
+price_index_previous_year = main_index.loc[main_index['date'].isin(date_range_previous_year), "CEFIS Food Index"].mean()
+price_index_current_month = main_index.loc[main_index['date'].isin(date_range_current_month), "CEFIS Food Index"].mean()
+yoy_growth = round((price_index_current_month/price_index_previous_year-1)*100,2)
+
 # Sidebar
 st.sidebar.header('Select Indices')
 
@@ -26,6 +40,9 @@ selected_item2 = st.sidebar.selectbox('Choose the competing index for the lower 
 st.sidebar.markdown("For visualization purposes, the competing index is reindexed to 2020M01=100.")
 st.sidebar.markdown("<a href='https://data.tuik.gov.tr/Kategori/GetKategori?p=Enflasyon-ve-Fiyat-106'>Turkstat food index</a> refers to Turkish Statistical Institute's price index for food and non-alcoholic beverages.", unsafe_allow_html=True)
 st.sidebar.markdown("<a href='https://bilgibankasi.ito.org.tr/tr/istatistik-verileri/istanbul-ucretler-gecinme/gruplar-itibariyle-degisim?year=95'>ITO food index</a> refers to Istanbul Chamber of Commerce's wage earners index for food expenditure.", unsafe_allow_html=True)
+st.sidebar.markdown("""
+  #### The final update is {temp}  
+""".format(temp=str(last_day.strftime("%d %B %Y"))))
 
 # Main
 st.title('CEFIS Daily Food Price Indices')
@@ -38,6 +55,12 @@ st.markdown("The <a href='https://cefis.bilgi.edu.tr/'>CEFIS</a> Food Price Indi
 
 st.markdown("In this dashboard, we display the subindices that are used to create our main food index in the upper figure. You can choose any subindex or its associated price level using the left menu. \
              We also display the main food index and the competing index in the lower figure. You can also choose the competing index using the left menu.")
+
+st.markdown(""" **:red[ The {date} month-on-month CEFIS food inflation is {MoM}%. ]**
+            """.format(date=str(last_day.strftime("%B %Y")), MoM=mom_growth))
+
+st.markdown(""" **:red[ The {date} year-on-year CEFIS food inflation is {YoY}%. ]**
+            """.format(date=str(last_day.strftime("%B %Y")), YoY=yoy_growth))
 
 # Main
 st.header(f'Daily Time Series of {selected_item1}')
