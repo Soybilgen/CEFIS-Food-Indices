@@ -52,7 +52,7 @@ fig1.update_xaxes(rangeslider_visible=True)
 st.plotly_chart(fig1, theme="streamlit", use_container_width=True,)
 
 # Main
-st.header(f'Daily Time Series of {main_index.columns[0]} and {selected_item2}')
+st.header(f'Daily Time Series of {main_index.columns[1]} and {selected_item2}')
 
 # Time series plot
 fig2_data = main_index[["date", main_index.columns[1], selected_item2]]
