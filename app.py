@@ -41,7 +41,7 @@ st.sidebar.markdown("For visualization purposes, the competing index is reindexe
 st.sidebar.markdown("<a href='https://data.tuik.gov.tr/Kategori/GetKategori?p=Enflasyon-ve-Fiyat-106'>Turkstat food index</a> refers to Turkish Statistical Institute's price index for food and non-alcoholic beverages.", unsafe_allow_html=True)
 st.sidebar.markdown("<a href='https://bilgibankasi.ito.org.tr/tr/istatistik-verileri/istanbul-ucretler-gecinme/gruplar-itibariyle-degisim?year=95'>ITO food index</a> refers to Istanbul Chamber of Commerce's wage earners index for food expenditure.", unsafe_allow_html=True)
 st.sidebar.markdown("""
-  #### The final update is {temp}  
+  #### The last update is {temp}  
 """.format(temp=str(last_day.strftime("%d %B %Y"))))
 
 # Main
