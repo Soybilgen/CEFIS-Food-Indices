@@ -15,6 +15,43 @@ def fig1_daily(sub, selected_item, axis_title):
     fig1.update_xaxes(rangeslider_visible=True)
     return fig1
 
+def fig2_daily(main_index, selected_item2, axis_title):
+    # Time series plot
+    fig2_data = main_index[["date", main_index.columns[1], selected_item2]]
+    fig2 = px.line(fig2_data, y=fig2_data.columns[1:], x="date", 
+                    # title=f'Daily Time Series of {main_index.columns[1]} and {selected_item2}', 
+                    template="seaborn", render_mode='webg1',
+                    labels={
+                            "date": "Date",
+                            "value" : axis_title
+                        },
+                        width=800, height=600)
+    fig2.update_layout(legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="left",
+            x=0.01,
+            title=None, 
+        ))
+    fig2.update_xaxes(rangeslider_visible=True)
+    fig2.update_traces(line=dict(color='red'), selector=dict(name=fig2_data.columns[2]))
+    return fig2
+
+def yoy_calc(sub, last_day, selected_freq):
+    if selected_freq=='Daily':
+        date_range_for_yoy = pd.date_range(start=(sub["date"][0]), end=(last_day - pd.DateOffset(months=12)), freq='D')
+    else:
+        date_range_for_yoy = pd.date_range(start=(sub["date"][0]), end=(last_day - pd.DateOffset(months=12)), freq='M')
+
+    len_yoy = date_range_for_yoy.__len__()  
+    sub_new = sub.iloc[-(len_yoy+1):-1,:].drop(['date'], axis=1).reset_index(drop=True)
+    sub_old = sub.iloc[0:len_yoy,:].drop(['date'], axis=1).reset_index(drop=True)
+    yoy_growth = round((sub_new/sub_old-1)*100,2)
+    yoy_growth.set_index(sub.iloc[-(len_yoy+1):-1,0], inplace=True)
+    yoy_growth.reset_index(inplace=True)
+
+    return yoy_growth
+
 # Change page margins
 st.set_page_config(layout="wide", page_title="CEFIS Food Price Index", page_icon=":food:")
 
@@ -32,7 +69,6 @@ last_day = main_index["date"][main_index.__len__()-1]
 year = last_day.year
 month = last_day.month
 day = last_day.day
-# last_year = pd.to_datetime(str(year-1) + '-' + str(month) + '-' + str(day))
 
 date_range_previous_month = pd.date_range(start=(last_day - pd.DateOffset(months=1) - pd.DateOffset(days=last_day.day-1)), end=(last_day - pd.DateOffset(months=1)), freq='D')
 date_range_previous_year = pd.date_range(start=(last_day - pd.DateOffset(years=1) - pd.DateOffset(days=last_day.day-1)), end=(last_day - pd.DateOffset(years=1)), freq='D')
@@ -50,8 +86,8 @@ yoy_growth = round((price_index_current_month/price_index_previous_year-1)*100,2
 st.sidebar.header('Select Figure Options')
 
 # Select items
-selected_freq = st.sidebar.selectbox('Choose whether figures are displayed daily or monthly', ['Daily', 'Monthly'])
-selected_level = st.sidebar.selectbox('Choose whether figures are displayed in levels or growth rates', ['Level', 'Growth Rate'])
+selected_freq = st.sidebar.selectbox('Choose whether figures are displayed in daily or monthly frequency', ['Daily', 'Monthly'])
+selected_level = st.sidebar.selectbox('Choose whether figures are displayed in levels or growth rates', ['Level', 'YoY Growth Rate'])
 
 st.sidebar.header('Select Indices')
 
@@ -78,81 +114,87 @@ st.markdown("The <a href='https://cefis.bilgi.edu.tr/'>CEFIS</a> Food Price Indi
 st.markdown("In this dashboard, we display the subindices that are used to create our main food index in the upper figure. You can choose any subindex or its associated price level using the left menu. \
              We also display the main food index and the competing index in the lower figure. You can also choose the competing index using the left menu.")
 
-st.markdown(""" **:red[ The {date} month-on-month CEFIS food inflation is {MoM}%. ]**
+st.markdown(""" **:red[ The {date} month-on-month CEFIS food inflation is {MoM}% (Day Adjusted). ]**
             """.format(date=str(last_day.strftime("%B %Y")), MoM=mom_growth))
 
-st.markdown(""" **:red[ The {date} year-on-year CEFIS food inflation is {YoY}%. ]**
-            """.format(date=str(last_day.strftime("%B %Y")), YoY=yoy_growth))
-
-# Main
+###################### First Figures ######################
 if selected_freq == 'Daily':
-    st.header(f'Daily Time Series of {selected_item1}')
     if selected_type1 == 'Price Index':
         if selected_level == 'Level':
-            fig1 = fig1_daily(subindices, selected_item1, "Index Value, 2020M01=100")
+            st.header(f'Daily Index Level of {selected_item1}')
+            fig1 = fig1_daily(subindices, selected_item1, "Index Level, 2020M01=100")
             st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
         else:
-            # combine year month and day values to create a datetime object
-            subindices = (subindices.loc[subindices["date"]==last_day,:] - subindices.loc[subindices["date"]==last_year,:])/subindices.loc[subindices["date"]==last_year,:]
-            subindices = subindices.loc[subindices["date"]<pd.to_datetime(str(2020) + '-' + str(8) + '-' + str(1)), :]
-
-            fig1 = fig1_daily(subindices, selected_item1, "Price Level")
+            st.header(f'Daily YoY Growth Rate of {selected_item1}')
+            subindices = yoy_calc(subindices, last_day, selected_freq)
+            fig1 = fig1_daily(subindices, selected_item1, "YoY Growth Rate")
             st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
-    else:
-        if selected_type1 == 'Price Index':
-            fig1 = fig1_daily(subindices, selected_item1, "Index Value, 2020M01=100")
-            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
-        else:
-            fig1 = fig1_daily(subindices, selected_item1, "Index Level")
-            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
-else:
-    st.header(f'Monthly Time Series of {selected_item1}')
-    subindices.set_index('date', inplace=True)
-    subindices = subindices.resample('M').mean()
-    subindices.reset_index(inplace=True)
-
-    subindices.set_index('date', inplace=True)
-    subindices = subindices.resample('M').mean()
-    subindices.reset_index(inplace=True)
-    
-    if selected_freq == 'Daily':
-        if selected_type1 == 'Price Index':
-            fig1 = fig1_daily(subindices, selected_item1, "Index Value, 2020M01=100")
-            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
-        else:
+    else: ## Price Level
+        if selected_level == 'Level':
+            st.header(f'Daily Price Level of {selected_item1}')
             fig1 = fig1_daily(subprices, selected_item1, "Price Level")
             st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
-    else:
-        if selected_type1 == 'Price Index':
-            fig1 = fig1_daily(subindices, selected_item1, "Index Value, 2020M01=100")
+        else:
+            st.header(f'Daily YoY Growth Rate of {selected_item1}')
+            subindices = yoy_calc(subindices, last_day, selected_freq)
+            fig1 = fig1_daily(subprices, selected_item1, "YoY Growth Rate")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
+else: ## Monthly
+    subindices.set_index('date', inplace=True)
+    subindices = subindices.resample('M').mean()
+    subindices.reset_index(inplace=True)
+
+    subprices.set_index('date', inplace=True)
+    subprices = subprices.resample('M').mean()
+    subprices.reset_index(inplace=True)
+    
+    if selected_type1 == 'Price Index':
+        if selected_level == 'Level':
+            st.header(f'Monthly Index Level of {selected_item1}')
+            fig1 = fig1_daily(subindices, selected_item1, "Index Level, 2020M01=100")
             st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
         else:
-            fig1 = fig1_daily(subindices, selected_item1, "Index Level")
+            st.header(f'Monthly YoY Growth Rate of {selected_item1}')
+            subindices = yoy_calc(subindices, last_day, selected_freq)
+            fig1 = fig1_daily(subindices, selected_item1, "YoY Growth Rate")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
+    else: ## Price Level
+        if selected_level == 'Level':
+            st.header(f'Monthly Price Level of {selected_item1}')
+            fig1 = fig1_daily(subprices, selected_item1, "Price Level")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
+        else:
+            st.header(f'Monthly YoY Growth Rate of {selected_item1}')
+            subindices = yoy_calc(subindices, last_day, selected_freq)
+            fig1 = fig1_daily(subprices, selected_item1, "YoY Growth Rate")
             st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
 
-# Main
-st.header(f'Daily Time Series of {main_index.columns[1]} and {selected_item2}')
+###################### Main Figures ######################
+if selected_freq == 'Daily':
+    # Main
+    if selected_level == 'Level':
+        st.header(f'Daily Index Level of {main_index.columns[1]} and {selected_item2}')
+        fig2 = fig2_daily(main_index, selected_item2, "Index Level, 2020M01=100")     
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.header(f'Daily YoY Growth Rate of {main_index.columns[1]} and {selected_item2}')
+        main_index = yoy_calc(main_index, last_day, selected_freq)
+        fig2 = fig2_daily(main_index, selected_item2, "YoY Growth Rate")
+        st.plotly_chart(fig2, use_container_width=True)
+else: ## Monthly
+    main_index.set_index('date', inplace=True)
+    main_index = main_index.resample('M').mean()
+    main_index.reset_index(inplace=True)
 
-# Time series plot
-fig2_data = main_index[["date", main_index.columns[1], selected_item2]]
-fig2 = px.line(fig2_data, y=fig2_data.columns[1:], x="date", 
-              # title=f'Daily Time Series of {main_index.columns[1]} and {selected_item2}', 
-              template="seaborn", render_mode='webg1',
-              labels={
-                     "date": "Date",
-                     "value" : "Index Value, 2020M01=100"
-                 },
-                 width=800, height=600)
-fig2.update_layout(legend=dict(
-    yanchor="top",
-    y=0.99,
-    xanchor="left",
-    x=0.01,
-    title=None, 
-))
-fig2.update_xaxes(rangeslider_visible=True)
-fig2.update_traces(line=dict(color='red'), selector=dict(name=fig2_data.columns[2]))
-st.plotly_chart(fig2, use_container_width=True)
+    if selected_level == 'Level':
+        st.header(f'Monthly Index Level of {main_index.columns[1]} and {selected_item2}')
+        fig2 = fig2_daily(main_index, selected_item2, "Index Level, 2020M01=100")     
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.header(f'Monthly YoY Growth Rate of {main_index.columns[1]} and {selected_item2}')
+        main_index = yoy_calc(main_index, last_day, selected_freq)
+        fig2 = fig2_daily(main_index, selected_item2, "YoY Growth Rate")
+        st.plotly_chart(fig2, use_container_width=True)
 
 # Raw data
 if selected_type1 == 'Price Index':
