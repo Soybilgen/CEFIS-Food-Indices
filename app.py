@@ -43,7 +43,7 @@ st.sidebar.markdown("<a href='https://bilgibankasi.ito.org.tr/tr/istatistik-veri
 st.sidebar.markdown("""
   #### The last update is {temp}  
 """.format(temp=str(last_day.strftime("%d %B %Y"))))
-st.sidebar.markdown(" You can download all our data used in this dashboard from <a href='https://github.com/Soybilgen/CEFIS-Food-Indices'>our repository.</a>.", unsafe_allow_html=True)
+st.sidebar.markdown(" You can download all our data used in this dashboard from <a href='https://github.com/Soybilgen/CEFIS-Food-Indices'>our repository</a>.", unsafe_allow_html=True)
 # Main
 st.title('CEFIS Daily Food Price Indices')
 
