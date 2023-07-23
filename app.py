@@ -2,6 +2,19 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+def fig1_daily(sub, selected_item, axis_title):
+    # Time series plot
+    fig1 = px.line(sub[["date", selected_item]], y=selected_item, x="date", 
+                # title=f'Daily Time Series of {selected_item1}', 
+                template="seaborn", render_mode='webg1',
+                labels={
+                        "date": "Date",
+                        selected_item1 : axis_title
+                    },
+                    width=800, height=600)
+    fig1.update_xaxes(rangeslider_visible=True)
+    return fig1
+
 # Change page margins
 st.set_page_config(layout="wide", page_title="CEFIS Food Price Index", page_icon=":food:")
 
@@ -16,6 +29,10 @@ subprices['date'] = pd.to_datetime(subprices['date'])
 main_index['date'] = pd.to_datetime(main_index['date'])
 
 last_day = main_index["date"][main_index.__len__()-1]
+year = last_day.year
+month = last_day.month
+day = last_day.day
+# last_year = pd.to_datetime(str(year-1) + '-' + str(month) + '-' + str(day))
 
 date_range_previous_month = pd.date_range(start=(last_day - pd.DateOffset(months=1) - pd.DateOffset(days=last_day.day-1)), end=(last_day - pd.DateOffset(months=1)), freq='D')
 date_range_previous_year = pd.date_range(start=(last_day - pd.DateOffset(years=1) - pd.DateOffset(days=last_day.day-1)), end=(last_day - pd.DateOffset(years=1)), freq='D')
@@ -30,9 +47,14 @@ price_index_current_month = main_index.loc[main_index['date'].isin(date_range_cu
 yoy_growth = round((price_index_current_month/price_index_previous_year-1)*100,2)
 
 # Sidebar
-st.sidebar.header('Select Indices')
+st.sidebar.header('Select Figure Options')
 
 # Select items
+selected_freq = st.sidebar.selectbox('Choose whether figures are displayed daily or monthly', ['Daily', 'Monthly'])
+selected_level = st.sidebar.selectbox('Choose whether figures are displayed in levels or growth rates', ['Level', 'Growth Rate'])
+
+st.sidebar.header('Select Indices')
+
 selected_item1 = st.sidebar.selectbox('Choose the subindex for the upper figure', options=subindices.columns[1:])
 selected_type1 = st.sidebar.selectbox('Choose the upper figure type', ['Price Index', 'Price Level'])
 selected_item2 = st.sidebar.selectbox('Choose the competing index for the lower figure', options=main_index.columns[2:])
@@ -63,31 +85,50 @@ st.markdown(""" **:red[ The {date} year-on-year CEFIS food inflation is {YoY}%. 
             """.format(date=str(last_day.strftime("%B %Y")), YoY=yoy_growth))
 
 # Main
-st.header(f'Daily Time Series of {selected_item1}')
-if selected_type1 == 'Price Index':
-    # Time series plot
-    fig1 = px.line(subindices[["date", selected_item1]], y=selected_item1, x="date", 
-                # title=f'Daily Time Series of {selected_item1}', 
-                template="seaborn", render_mode='webg1',
-                labels={
-                        "date": "Date",
-                        selected_item1 : "Index Value, 2020M01=100"
-                    },
-                    width=800, height=600)
-    fig1.update_xaxes(rangeslider_visible=True)
-    st.plotly_chart(fig1, theme="streamlit", use_container_width=True,)
+if selected_freq == 'Daily':
+    st.header(f'Daily Time Series of {selected_item1}')
+    if selected_type1 == 'Price Index':
+        if selected_level == 'Level':
+            fig1 = fig1_daily(subindices, selected_item1, "Index Value, 2020M01=100")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
+        else:
+            # combine year month and day values to create a datetime object
+            subindices = (subindices.loc[subindices["date"]==last_day,:] - subindices.loc[subindices["date"]==last_year,:])/subindices.loc[subindices["date"]==last_year,:]
+            subindices = subindices.loc[subindices["date"]<pd.to_datetime(str(2020) + '-' + str(8) + '-' + str(1)), :]
+
+            fig1 = fig1_daily(subindices, selected_item1, "Price Level")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
+    else:
+        if selected_type1 == 'Price Index':
+            fig1 = fig1_daily(subindices, selected_item1, "Index Value, 2020M01=100")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
+        else:
+            fig1 = fig1_daily(subindices, selected_item1, "Index Level")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
 else:
-        # Time series plot
-    fig1 = px.line(subprices[["date", selected_item1]], y=selected_item1, x="date", 
-                # title=f'Daily Time Series of {selected_item1}', 
-                template="seaborn", render_mode='webg1',
-                labels={
-                        "date": "Date",
-                        selected_item1 : "Price Level"
-                    },
-                    width=800, height=600)
-    fig1.update_xaxes(rangeslider_visible=True)
-    st.plotly_chart(fig1, theme="streamlit", use_container_width=True,)
+    st.header(f'Monthly Time Series of {selected_item1}')
+    subindices.set_index('date', inplace=True)
+    subindices = subindices.resample('M').mean()
+    subindices.reset_index(inplace=True)
+
+    subindices.set_index('date', inplace=True)
+    subindices = subindices.resample('M').mean()
+    subindices.reset_index(inplace=True)
+    
+    if selected_freq == 'Daily':
+        if selected_type1 == 'Price Index':
+            fig1 = fig1_daily(subindices, selected_item1, "Index Value, 2020M01=100")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
+        else:
+            fig1 = fig1_daily(subprices, selected_item1, "Price Level")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
+    else:
+        if selected_type1 == 'Price Index':
+            fig1 = fig1_daily(subindices, selected_item1, "Index Value, 2020M01=100")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
+        else:
+            fig1 = fig1_daily(subindices, selected_item1, "Index Level")
+            st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
 
 # Main
 st.header(f'Daily Time Series of {main_index.columns[1]} and {selected_item2}')
