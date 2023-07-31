@@ -41,7 +41,7 @@ def yoy_calc(sub, last_day, selected_freq):
     if selected_freq=='Daily':
         date_range_for_yoy = pd.date_range(start=(sub["date"][0]), end=(last_day - pd.DateOffset(months=12)), freq='D')
     else:
-        date_range_for_yoy = pd.date_range(start=(sub["date"][0]), end=(last_day - pd.DateOffset(months=12)), freq='M')
+        date_range_for_yoy = pd.date_range(start=(sub["date"][0]), end=(last_day - pd.DateOffset(months=13)), freq='M')
 
     len_yoy = date_range_for_yoy.__len__()  
     sub_new = sub.iloc[-(len_yoy+1):-1,:].drop(['date'], axis=1).reset_index(drop=True)
@@ -61,9 +61,9 @@ subprices = pd.read_csv('daily_detailed_subprices.csv')
 main_index = pd.read_csv('daily_mainindices.csv')
 
 # Convert the 'date' column to datetime format
-subindices['date'] = pd.to_datetime(subindices['date'])
-subprices['date'] = pd.to_datetime(subprices['date'])
-main_index['date'] = pd.to_datetime(main_index['date'])
+subindices['date'] = pd.to_datetime(subindices['date'], dayfirst=True)
+subprices['date'] = pd.to_datetime(subprices['date'], dayfirst=True)
+main_index['date'] = pd.to_datetime(main_index['date'], dayfirst=True)
 
 last_day = main_index["date"][main_index.__len__()-1]
 year = last_day.year
