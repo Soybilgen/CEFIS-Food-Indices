@@ -41,19 +41,16 @@ def yoy_calc(sub, last_day, selected_freq):
     if selected_freq=='Daily':
         date_range_for_yoy_old = pd.date_range(start=(sub["date"][0]), end=(last_day - pd.DateOffset(months=12)), freq='D')
         date_range_for_yoy_new =  date_range_for_yoy_old + pd.DateOffset(months=12)
-        sub_old = sub.loc[sub['date'].isin(date_range_for_yoy_old),:].drop(['date'], axis=1).reset_index(drop=True)
-        sub_new = sub.loc[sub['date'].isin(date_range_for_yoy_new),:].drop(['date'], axis=1).reset_index(drop=True)
-        sub_old = sub_old.iloc[1:(len(sub_old)),:].reset_index(drop=True)
-        yoy_growth = round((sub_new/sub_old-1)*100,2)
-        yoy_growth = yoy_growth.set_index(date_range_for_yoy_new[1:])
+       
     else:
-        date_range_for_yoy = pd.date_range(start=(sub["date"][0]), end=(last_day - pd.DateOffset(months=13)), freq='M')
-        len_yoy = date_range_for_yoy.__len__()  
-        sub_new = sub.iloc[-(len_yoy+1):-1,:].drop(['date'], axis=1).reset_index(drop=True)
-        sub_old = sub.iloc[0:len_yoy,:].drop(['date'], axis=1).reset_index(drop=True)
-        yoy_growth = round((sub_new/sub_old-1)*100,2)
-        yoy_growth.set_index(sub.iloc[-(len_yoy+1):-1,0], inplace=True)
+        date_range_for_yoy_old = pd.date_range(start=(main_index["date"][0]), end=(last_day - pd.DateOffset(months=12)), freq='M')
+        date_range_for_yoy_new = date_range_for_yoy_old + pd.DateOffset(months=12)
 
+    sub_old = sub.loc[sub['date'].isin(date_range_for_yoy_old),:].drop(['date'], axis=1).reset_index(drop=True)
+    sub_new = sub.loc[sub['date'].isin(date_range_for_yoy_new),:].drop(['date'], axis=1).reset_index(drop=True)
+    sub_old = sub_old.iloc[1:(len(sub_old)),:].reset_index(drop=True)
+    yoy_growth = round((sub_new/sub_old-1)*100,2)
+    yoy_growth = yoy_growth.set_index(date_range_for_yoy_new[1:])
     yoy_growth.reset_index(inplace=True)
     yoy_growth.rename(columns={'index':'date'}, inplace=True)
 
