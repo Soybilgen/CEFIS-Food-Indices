@@ -124,6 +124,9 @@ st.markdown("You can download all our data as excel file <a href='https://github
 st.markdown(""" **:red[ The {date} month-on-month CEFIS food inflation is {MoM}% (Day Adjusted). ]**
             """.format(date=str(last_day.strftime("%B %Y")), MoM=mom_growth))
 
+st.markdown(""" **:red[ The {date} year-on-year CEFIS food inflation is {YoY}% (Day Adjusted). ]**
+            """.format(date=str(last_day.strftime("%B %Y")), YoY=yoy_growth))
+
 ###################### First Figures ######################
 if selected_freq == 'Daily':
     if selected_type1 == 'Price Index':
