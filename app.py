@@ -119,7 +119,7 @@ st.markdown("The <a href='https://cefis.bilgi.edu.tr/'>CEFIS</a> Food Price Indi
 st.markdown("In this dashboard, we display the subindices that are used to create our main food index in the upper figure. You can choose any subindex or its associated price level using the left menu. \
              We also display the main food index and the competing index in the lower figure. You can also choose the competing index using the left menu.")
 
-st.markdown("You can download all our data as excel file <a href='https://github.com/Soybilgen/CEFIS-Food-Indices/output.xlsx'>here</a>.", unsafe_allow_html=True)
+st.markdown("You can download all our data as excel file <a href='https://github.com/Soybilgen/CEFIS-Food-Indices/raw/main/output.xlsx'>here</a>.", unsafe_allow_html=True)
 
 st.markdown(""" **:red[ The {date} month-on-month CEFIS food inflation is {MoM}% (Day Adjusted). ]**
             """.format(date=str(last_day.strftime("%B %Y")), MoM=mom_growth))
