@@ -127,7 +127,34 @@ st.markdown(""" **:red[ The {date} month-on-month CEFIS food inflation is {MoM}%
 st.markdown(""" **:red[ The {date} year-on-year CEFIS food inflation is {YoY}% (Day Adjusted). ]**
             """.format(date=str(last_day.strftime("%B %Y")), YoY=yoy_growth))
 
-###################### First Figures ######################
+###################### Main Figures ######################
+if selected_freq == 'Daily':
+    # Main
+    if selected_level == 'Level':
+        st.header(f'Daily Index Level of {main_index.columns[1]} and {selected_item2}')
+        fig2 = fig2_daily(main_index, selected_item2, "Index Level, 2020M01=100")     
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.header(f'Daily YoY Growth Rate of {main_index.columns[1]} and {selected_item2}')
+        main_index = yoy_calc(main_index, last_day, selected_freq)
+        fig2 = fig2_daily(main_index, selected_item2, "YoY Growth Rate")
+        st.plotly_chart(fig2, use_container_width=True)
+else: ## Monthly
+    main_index.set_index('date', inplace=True)
+    main_index = main_index.resample('M').mean()
+    main_index.reset_index(inplace=True)
+
+    if selected_level == 'Level':
+        st.header(f'Monthly Index Level of {main_index.columns[1]} and {selected_item2}')
+        fig2 = fig2_daily(main_index, selected_item2, "Index Level, 2020M01=100")     
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.header(f'Monthly YoY Growth Rate of {main_index.columns[1]} and {selected_item2}')
+        main_index = yoy_calc(main_index, last_day, selected_freq)
+        fig2 = fig2_daily(main_index, selected_item2, "YoY Growth Rate")
+        st.plotly_chart(fig2, use_container_width=True)
+        
+###################### Sub Indices ######################
 if selected_freq == 'Daily':
     if selected_type1 == 'Price Index':
         if selected_level == 'Level':
@@ -178,33 +205,6 @@ else: ## Monthly
             subindices = yoy_calc(subprices, last_day, selected_freq)
             fig1 = fig1_daily(subprices, selected_item1, "YoY Growth Rate")
             st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
-
-###################### Main Figures ######################
-if selected_freq == 'Daily':
-    # Main
-    if selected_level == 'Level':
-        st.header(f'Daily Index Level of {main_index.columns[1]} and {selected_item2}')
-        fig2 = fig2_daily(main_index, selected_item2, "Index Level, 2020M01=100")     
-        st.plotly_chart(fig2, use_container_width=True)
-    else:
-        st.header(f'Daily YoY Growth Rate of {main_index.columns[1]} and {selected_item2}')
-        main_index = yoy_calc(main_index, last_day, selected_freq)
-        fig2 = fig2_daily(main_index, selected_item2, "YoY Growth Rate")
-        st.plotly_chart(fig2, use_container_width=True)
-else: ## Monthly
-    main_index.set_index('date', inplace=True)
-    main_index = main_index.resample('M').mean()
-    main_index.reset_index(inplace=True)
-
-    if selected_level == 'Level':
-        st.header(f'Monthly Index Level of {main_index.columns[1]} and {selected_item2}')
-        fig2 = fig2_daily(main_index, selected_item2, "Index Level, 2020M01=100")     
-        st.plotly_chart(fig2, use_container_width=True)
-    else:
-        st.header(f'Monthly YoY Growth Rate of {main_index.columns[1]} and {selected_item2}')
-        main_index = yoy_calc(main_index, last_day, selected_freq)
-        fig2 = fig2_daily(main_index, selected_item2, "YoY Growth Rate")
-        st.plotly_chart(fig2, use_container_width=True)
 
 # Raw data
 if selected_type1 == 'Price Index':
