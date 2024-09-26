@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from mitosheet.streamlit.v1 import spreadsheet
 
 def fig1_daily(sub, selected_item, axis_title):
     # Time series plot
@@ -211,8 +212,7 @@ if selected_type1 == 'Price Index':
     raw_data = pd.concat([subindices[["date", selected_item1]], main_index[[main_index.columns[1], selected_item2]]], axis=1)
 else:
     raw_data = pd.concat([subprices[["date", selected_item1]], main_index[[main_index.columns[1], selected_item2]]], axis=1)
-# convert datetime to date
-raw_data['date'] = raw_data['date'].dt.date
-if st.checkbox('Show raw data'):
+
+if st.checkbox('Explore raw data'):
     st.subheader('Raw data')
-    st.write(raw_data)
+    spreadsheet(raw_data)
